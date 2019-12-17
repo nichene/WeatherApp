@@ -1,11 +1,19 @@
 package com.example.myweatherapp
 
+import android.content.Context
+import android.content.SharedPreferences
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.widget.RadioButton
+import android.widget.Toast
 
 class SettingsActivity : AppCompatActivity() {
+
+    private val SP: SharedPreferences by lazy {
+        getSharedPreferences("my_sp", Context.MODE_PRIVATE)
+    }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -21,11 +29,17 @@ class SettingsActivity : AppCompatActivity() {
             when (view.getId()) {
                 R.id.radio_celsius ->
                     if (checked) {
-                        // Pirates are the best
+                        SP.edit()
+                            .putString("PreferredUnit", "Celsius")
+                            .apply()
+                        Toast.makeText(this, "Celsius selected",Toast.LENGTH_LONG).show()
                     }
                 R.id.radio_farenheit ->
                     if (checked) {
-                        // Ninjas rule
+                        SP.edit()
+                            .putString("PreferredUnit", "Farenheit")
+                            .apply()
+                        Toast.makeText(this, "Farenheit selected",Toast.LENGTH_LONG).show()
                     }
             }
         }
@@ -40,15 +54,20 @@ class SettingsActivity : AppCompatActivity() {
             when (view.getId()) {
                 R.id.rdb_EN ->
                     if (checked) {
-                        // Pirates are the best
+                        SP.edit()
+                            .putString("PreferredLanguage", "EN")
+                            .apply()
                     }
                 R.id.rdb_PT ->
                     if (checked) {
-                        // Ninjas rule
+                        SP.edit()
+                            .putString("PreferredLanguage", "PT")
+                            .apply()
                     }
             }
         }
     }
+
 
 
 }
