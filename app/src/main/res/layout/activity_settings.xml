@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_margin="16dp"
-    tools:context=".SettingsActivity">
+    tools:context=".ui.setting.SettingsActivity">
 
     <TextView
         android:id="@+id/textView"
@@ -32,14 +32,13 @@
             android:id="@+id/radio_celsius"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:onClick="onRadioButtonClickedUnit"
+            android:checked="true"
             android:text="@string/celsius" />
 
         <RadioButton
             android:id="@+id/radio_farenheit"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:onClick="onRadioButtonClickedUnit"
             android:text="@string/fahrenheit"
             app:layout_constraintStart_toEndOf="@+id/radioGroup_Unit"
             tools:layout_editor_absoluteY="59dp" />
@@ -74,7 +73,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/En"
-            android:onClick="onRadioButtonClickedLang"
+            android:checked="true"
             />
 
         <RadioButton
@@ -82,10 +81,19 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/Pt"
-            android:onClick="onRadioButtonClickedLang"
             />
 
     </RadioGroup>
+
+    <Button
+        android:id="@+id/button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Save"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/radioGroup_Lang" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

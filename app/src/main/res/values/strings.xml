@@ -11,5 +11,6 @@
 
     <string name="En">EN</string>
     <string name="Pt">PT</string>
+    <string name="save_settings">Settings saved with sucess</string>
 
 </resources>
