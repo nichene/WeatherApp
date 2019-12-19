@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.os.AsyncTask
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -18,7 +19,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.myweatherapp.R
 import com.example.myweatherapp.api.RetrofitManager
 import com.example.myweatherapp.common.Constants
+import com.example.myweatherapp.data.RoomManager
 import com.example.myweatherapp.entity.City
+import com.example.myweatherapp.entity.Favorite
 import com.example.myweatherapp.entity.FindResult
 import com.example.myweatherapp.ui.setting.SettingsActivity
 import kotlinx.android.synthetic.main.activity_main.*
@@ -27,6 +30,11 @@ import retrofit2.Callback
 import retrofit2.Response
 
 class ListActivity : AppCompatActivity(), Callback<FindResult> {
+
+
+    private val db : RoomManager? by lazy{
+        RoomManager.getInstance(this)
+    }
 
     private var preferredUnit : Boolean = true
     private var preferredLang : Boolean = true
@@ -44,6 +52,13 @@ class ListActivity : AppCompatActivity(), Callback<FindResult> {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+
+        InsertFavoriteAsync(this).execute()
+
+
+
+
+
         button2.setOnClickListener {
             if(isdeviceConnected()){
                 getCities()
@@ -52,6 +67,7 @@ class ListActivity : AppCompatActivity(), Callback<FindResult> {
             }
 
         }
+
         initRecyclerView()
 
 
@@ -137,5 +153,24 @@ class ListActivity : AppCompatActivity(), Callback<FindResult> {
 
         }
         progressBar.visibility = View.GONE
+    }
+
+    class InsertFavoriteAsync(context: Context): AsyncTask<Void, Void, Boolean>(){
+
+        val db = RoomManager.getInstance(context)
+
+        override fun doInBackground(vararg params: Void?): Boolean {
+
+            for (i in 0..10){
+                val favorite = Favorite(i, "Cidade $i")
+                db?.getCityDao()?.insertFavorite(favorite)
+            }
+            db?.getCityDao()?.allFavorite()?.forEach {
+                Log.d("WELL", it.toString())
+            }
+            return true
+        }
+
+
     }
 }
