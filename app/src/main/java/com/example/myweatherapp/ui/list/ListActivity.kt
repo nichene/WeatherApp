@@ -36,8 +36,8 @@ class ListActivity : AppCompatActivity(), Callback<FindResult> {
         RoomManager.getInstance(this)
     }
 
-    private var preferredUnit : Boolean = true
-    private var preferredLang : Boolean = true
+    private var preferredUnit : String = "metric";
+    private var preferredLang : String = "EN";
 
     private val adapter: ListAdapter by lazy {
         ListAdapter()
@@ -52,6 +52,7 @@ class ListActivity : AppCompatActivity(), Callback<FindResult> {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        checkPreferences()
 
         InsertFavoriteAsync(this).execute()
 
@@ -82,7 +83,7 @@ class ListActivity : AppCompatActivity(), Callback<FindResult> {
     private fun getCities(){
         progressBar.visibility = View.VISIBLE
         val call = RetrofitManager.getWeatherService()
-            .find(editText.text.toString(), Constants.API_KEY)
+            .find(editText.text.toString(), preferredLang,preferredUnit, Constants.API_KEY)
 
         call.enqueue(this)
     }
@@ -108,14 +109,15 @@ class ListActivity : AppCompatActivity(), Callback<FindResult> {
 
     override fun onResume() {
         super.onResume()
-        checkPreferrences()
-
+        checkPreferences()
     }
 
-    private fun checkPreferrences(){
-        preferredUnit = SP.getBoolean("isCelsius", true)
-        preferredLang = SP.getBoolean("isEnglish", true)
-        Toast.makeText(this, preferredUnit.toString(), Toast.LENGTH_LONG).show()
+    private fun checkPreferences(){
+        var unit = SP.getBoolean("isCelsius", true)
+        var lang = SP.getBoolean("isEnglish", true)
+
+        if(unit == false) preferredUnit = "imperial";
+        if(lang == false) preferredLang = "PT"
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -148,7 +150,8 @@ class ListActivity : AppCompatActivity(), Callback<FindResult> {
     override fun onResponse(call: Call<FindResult>, response: Response<FindResult>) {
         if (response.isSuccessful){
 
-            adapter.updateData(response.body()?.list)
+
+            adapter.updateData(response.body()?.list, preferredUnit)
         }else{
 
         }
