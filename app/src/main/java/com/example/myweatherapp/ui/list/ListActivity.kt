@@ -13,14 +13,10 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.LinearLayout
 import android.widget.Toast
-import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.myweatherapp.R
 import com.example.myweatherapp.api.RetrofitManager
 import com.example.myweatherapp.common.Constants
 import com.example.myweatherapp.data.RoomManager
-import com.example.myweatherapp.entity.City
 import com.example.myweatherapp.entity.Favorite
 import com.example.myweatherapp.entity.FindResult
 import com.example.myweatherapp.ui.setting.SettingsActivity
@@ -28,6 +24,14 @@ import kotlinx.android.synthetic.main.activity_main.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import android.text.Editable
+import android.text.TextWatcher
+import com.example.myweatherapp.R
+import com.example.myweatherapp.entity.City
+import kotlinx.android.synthetic.main.row_weather_layout.*
+import java.io.File.separator
+import java.lang.Exception
+
 
 class ListActivity : AppCompatActivity(), Callback<FindResult> {
 
@@ -54,12 +58,6 @@ class ListActivity : AppCompatActivity(), Callback<FindResult> {
 
         checkPreferences()
 
-        InsertFavoriteAsync(this).execute()
-
-
-
-
-
         button2.setOnClickListener {
             if(isdeviceConnected()){
                 getCities()
@@ -69,6 +67,27 @@ class ListActivity : AppCompatActivity(), Callback<FindResult> {
 
         }
 
+
+        editText_city_search.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+            }
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                if( editText_city_search.text.toString().isEmpty()){
+                    getPreferredCities();
+
+                }
+
+            }
+
+        })
+
+
+        getPreferredCities();
         initRecyclerView()
 
 
@@ -81,12 +100,29 @@ class ListActivity : AppCompatActivity(), Callback<FindResult> {
 
 
     private fun getCities(){
+
         progressBar.visibility = View.VISIBLE
         val call = RetrofitManager.getWeatherService()
-            .find(editText.text.toString(), preferredLang,preferredUnit, Constants.API_KEY)
+            .find(editText_city_search.text.toString(), preferredLang,  preferredUnit, Constants.API_KEY)
 
         call.enqueue(this)
     }
+
+    private fun getPreferredCities(){
+        progressBar.visibility = View.VISIBLE
+
+        var listCities = FindFavoriteAsync(applicationContext).execute().get() as String
+
+        if(listCities.isNotEmpty()){
+            val call = RetrofitManager.getWeatherService()
+                .getPreferred(listCities, Constants.API_KEY)
+            call.enqueue(this)
+        }else{
+            progressBar.visibility = View.GONE
+        }
+
+    }
+
 
     private fun isdeviceConnected(): Boolean{
         val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
@@ -113,11 +149,21 @@ class ListActivity : AppCompatActivity(), Callback<FindResult> {
     }
 
     private fun checkPreferences(){
-        var unit = SP.getBoolean("isCelsius", true)
-        var lang = SP.getBoolean("isEnglish", true)
+        var unit = SP.getBoolean(Constants.PREFS_TEMP, true)
+        var lang = SP.getBoolean(Constants.PREFS_LANG, true)
 
-        if(unit == false) preferredUnit = "imperial";
-        if(lang == false) preferredLang = "PT"
+        if(unit == true){
+            preferredUnit = "metric"
+        }else{
+            preferredUnit = "imperial"
+        }
+
+        if(lang == true) {
+            preferredLang = "EN"
+        }else{
+            preferredLang = "PT"
+        }
+
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -143,14 +189,12 @@ class ListActivity : AppCompatActivity(), Callback<FindResult> {
     }
 
     override fun onFailure(call: Call<FindResult>, t: Throwable) {
-        Log.e("WELL", "Error", t)
         progressBar.visibility = View.GONE
     }
 
     override fun onResponse(call: Call<FindResult>, response: Response<FindResult>) {
+
         if (response.isSuccessful){
-
-
             adapter.updateData(response.body()?.list, preferredUnit)
         }else{
 
@@ -158,22 +202,37 @@ class ListActivity : AppCompatActivity(), Callback<FindResult> {
         progressBar.visibility = View.GONE
     }
 
-    class InsertFavoriteAsync(context: Context): AsyncTask<Void, Void, Boolean>(){
+    class FindFavoriteAsync(context: Context): AsyncTask<Void, Void, String>(){
+
+        var listFavorite : List<Favorite> = ArrayList()
+        var listFavoriteCityNames : MutableList<String> = ArrayList()
+        var resultStringOfCities = ""
+        var context = context
+
 
         val db = RoomManager.getInstance(context)
 
-        override fun doInBackground(vararg params: Void?): Boolean {
+        override fun doInBackground(vararg params: Void?): String {
 
-            for (i in 0..10){
-                val favorite = Favorite(i, "Cidade $i")
-                db?.getCityDao()?.insertFavorite(favorite)
+            try{
+
+                listFavorite =  db?.getCityDao()?.allFavorite() as List<Favorite>
+                db?.getCityDao()?.allFavorite()?.forEach {
+                    Log.d("WELL", it.toString())
+                }
+            }catch (e: Exception){
+
             }
-            db?.getCityDao()?.allFavorite()?.forEach {
-                Log.d("WELL", it.toString())
+            for (n in listFavorite){
+                listFavoriteCityNames.add(n.id.toString())
             }
-            return true
+            resultStringOfCities = listFavoriteCityNames.joinToString(separator= ",")
+
+            return resultStringOfCities
         }
 
 
     }
+
+
 }

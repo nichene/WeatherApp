@@ -43,5 +43,5 @@ data class Clouds(
 data class Favorite(
     @PrimaryKey
     val id: Int,
-    val name : String
+    val apiId : String
 )
